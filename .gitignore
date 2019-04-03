@@ -1,0 +1,23 @@
+# Ignore these please
+*.DS_Store
+*.classpath
+*.class
+*.project
+*.out
+/outputs/
+/bin/
+_scratch
+_ren.para
+.nodel
+*.pyc
+
+# Node specific
+nodeConfig.json
+_script_example.py
+_nodeConfig_schema.json
+_nodeConfig_example.json
+_example.pysp
+script_backup_*.py
+
+# Editors
+.vscode/
