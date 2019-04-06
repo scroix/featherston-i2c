@@ -16,13 +16,9 @@ import os
 STATUS_CHECK_INTERVAL = 75  # seconds between checking script is running without errors
 VOLTAGE_CHECK_INTERVAL = 60 * 5
 
-command = ''
-param_command = Parameter({'title': 'Python + Script',
-                           'desc': 'The list of command line arguments as JSON',
-                           'order': next_seq(),
-                           'schema': {'type': 'array', 'items': {
-                               'type': 'object',
-                               'properties': {'arg': {'type': 'string'}}}}})
+python = '/usr/bin/python3.5'
+script = 'mcp3428.py'
+
 param_disabled = Parameter({'title': 'Disabled', 'schema': {'type': 'boolean'}, 'order': next_seq()})
 param_debug = Parameter({'title': 'Debug', 'schema': {'type': 'boolean'}, 'order': next_seq()})
 
@@ -30,21 +26,33 @@ param_debug = Parameter({'title': 'Debug', 'schema': {'type': 'boolean'}, 'order
 # Local actions this Node provides
 @local_action({'title': 'Set Voltage', 'group': 'Basic', 'schema': {'type': 'number', 'min': 0, 'max': 10}})
 def set_voltage(arg):
+    command = [python, script, str(arg)]
     if param_debug:
         console.info(command)
+    proc = quick_process(command, finished = handle_stdout)
     console.info("Voltage set [%s]." % arg)
 
 
 @local_action({'title': 'Get Voltage', 'group': 'Basic'})
 def get_voltage(arg):
+    command = [python, script]
     if param_debug:
         console.info(command)
+    proc = quick_process(command, finished = handle_stdout)
     console.info("Voltage requested.")
 
 
 # Functions used by this Node
-def handle_output(response):
-    console.info(response.stdout)
+def handle_stdout(message):
+    if "Output" in message.stdout:
+        lookup_local_event('CurrentVoltage').emit(float(message.stdout.split()[2])) # expecting "Voltage Output: 0.0"
+        lastReceive[0] = system_clock()
+        if param_debug:
+            console.log("stdout: %s" % message.stdout)
+    elif "Set" in message.stdout:
+        pass
+    else:
+        console.error("Unexpected response from script.")
 
 
 # for comms drop-out
@@ -95,16 +103,6 @@ voltage_poller = Timer(lambda: lookup_local_action('get_voltage').call(), VOLTAG
 
 def main(arg=None):
     console.info("Recipe has begun cooking!")
-
-    # Retrieve Python location from arguments.
-    if param_command:
-        reducedCommand = [x['arg'] for x in param_command]
-        reducedCommand = reducedCommand
-        global command
-        command = reducedCommand
-        console.info('Using command %s' % reducedCommand)
-    else:
-        console.error('Missing Python parameters.')
 
     if param_disabled:
         console.warn('Recipe disabled.')
