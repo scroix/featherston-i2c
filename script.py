@@ -10,6 +10,7 @@
 
 
 import os
+from time import sleep
 
 
 # Parameters used by this Node
@@ -32,6 +33,9 @@ def set_voltage(arg):
     proc = quick_process(command, finished = handle_stdout)
     console.info("Voltage set [%s]." % arg)
 
+    sleep(1)
+    lookup_local_action('get_voltage').call()
+
 
 @local_action({'title': 'Get Voltage', 'group': 'Basic'})
 def get_voltage(arg):
@@ -40,6 +44,7 @@ def get_voltage(arg):
         console.info(command)
     proc = quick_process(command, finished = handle_stdout)
     console.info("Voltage requested.")
+    voltage_poller.reset()
 
 
 # Functions used by this Node
