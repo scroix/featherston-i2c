@@ -103,7 +103,7 @@ local_event_Status = LocalEvent({'group': 'Status', 'order': 99999+next_seq(), '
 
 # Timers this Node utilises
 status_timer = Timer(statusCheck, STATUS_CHECK_INTERVAL)
-voltage_poller = Timer(lambda: lookup_local_action('get_voltage').call(), VOLTAGE_CHECK_INTERVAL, VOLTAGE_CHECK_INTERVAL * 0.1, stopped=False)
+voltage_poller = Timer(lambda: lookup_local_action('get_voltage').call(), VOLTAGE_CHECK_INTERVAL, VOLTAGE_CHECK_INTERVAL * 0.1, stopped=True)
 
 
 def main(arg=None):
